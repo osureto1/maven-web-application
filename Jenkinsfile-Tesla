@@ -1,4 +1,4 @@
-node{ def mavenHome = tool name: 'maven3.6'
+node{ def mavenHome = tool name: 'maven3.9.2'
  stage('1.GetCode'){
  git "https://github.com/osureto1/tesla-app.git"}
  stage('2.Test&Build'){
