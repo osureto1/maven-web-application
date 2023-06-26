@@ -1,0 +1,54 @@
+pipeline{
+  agent any
+  tools {
+    maven "maven3.9.2"
+  }
+  //options {}
+  //triggers {}
+  stages{
+    stage('1GetCode'){
+      steps{
+        sh "echo build automation about to start"
+        git "https://github.com/osureto1/maven-web-application.git"
+        sh "echo latest version of code pulled in"
+      }
+    }
+    
+    stage('2Build'){
+        steps{
+         sh "echo build process starts"
+         sh "mvn clean package"
+         sh "echo build process ends"
+        }
+    }
+    
+    stage('3CodeAnalysis'){
+        steps{
+         sh "echo code quality review starts"
+         sh "mvn sonar:sonar"
+         sh "echo CodeQuality Review ends"
+        }
+    }
+    
+    stage('4Upload'){
+        steps{
+         
+         sh "mvn deploy"
+         sh "echo artifact uploaded"
+        }
+    }
+    
+    stage('5Deploy'){
+        steps{
+            deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://3.128.203.89:8177/')], contextPath: null, war: 'target/*war'
+            sh "echo deployment to production successfully completed"
+        }
+    }
+  }
+  post{
+    failure{emailext body: 'Build Failed', recipientProviders: [contributor(), developers(), upstreamDevelopers()], subject: 'Build Status', to: 'Hi Team'}
+    success{emailext body: 'Build Success', recipientProviders: [contributor(), developers(), upstreamDevelopers()], subject: 'Build Status', to: 'Hi Team'}
+    always{emailext body: 'Build Ready', recipientProviders: [contributor(), developers(), upstreamDevelopers()], subject: 'Build Status', to: 'Hi Team'}
+  }
+  
+  }
